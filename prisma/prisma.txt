@@ -1,0 +1,44 @@
+14. prisma/
+
+Hoje ainda está vazio ou quase vazio do ponto de vista funcional, mas essa pasta será a raiz da sua persistência relacional com Prisma.
+
+Papel futuro
+
+schema do banco
+
+migrations
+
+geração do client
+
+Leitura sênior
+
+Esse diretório representa a camada de modelagem de persistência, não o domínio.
+
+Isso é importante:
+
+banco não é domínio
+
+schema não é entidade de negócio
+
+persistência é detalhe de infraestrutura
+
+
+
+
+------------------------------------------------------
+
+
+
+O que cada parte faz
+generator client
+
+Define que o Prisma vai gerar um client TypeScript/Node para você consumir o banco.
+
+datasource db
+
+Define a fonte de dados da aplicação.
+Aqui você está dizendo:
+
+banco usado: PostgreSQL
+
+string de conexão: vem do .env

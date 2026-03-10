@@ -1,0 +1,71 @@
+8. tsconfig.json
+
+Esse arquivo define como o TypeScript interpreta e compila seu projeto.
+
+Responsabilidade
+
+Configurar o compilador TS.
+
+Campos importantes no seu contexto
+module: "commonjs"
+
+Define o sistema de módulo usado no output.
+
+Hoje isso está alinhado com a estratégia mais comum em backend Nest.
+
+target: "ES2021"
+
+Define para qual versão de JS o TS vai compilar.
+
+emitDecoratorMetadata e experimentalDecorators
+
+Necessários para o funcionamento correto dos decorators usados pelo Nest.
+
+moduleResolution: "node"
+
+Define como imports são resolvidos.
+
+types: ["node"]
+
+Expõe tipos globais do Node, como:
+
+process
+
+Buffer
+
+__dirname em cenários compatíveis
+
+strict: true
+
+Ativa checagem mais rígida de tipos.
+
+Leitura sênior
+
+Isso reduz erro silencioso e força melhor modelagem.
+
+
+9. tsconfig.build.json
+
+Esse arquivo especializa a configuração de build.
+
+Responsabilidade
+
+Dizer ao TypeScript como compilar para produção/build final.
+
+Normalmente ele exclui:
+
+testes
+
+specs
+
+artefatos que não devem ir para build
+
+Papel arquitetural
+
+Separar:
+
+configuração de desenvolvimento
+
+configuração de build
+
+Isso evita ruído e build desnecessário.

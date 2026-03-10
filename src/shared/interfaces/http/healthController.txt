@@ -1,0 +1,74 @@
+5. src/shared/interfaces/http/health.controller.ts
+
+Esse é seu primeiro controller HTTP.
+
+Responsabilidade
+
+Expor um endpoint simples de saúde da aplicação.
+
+O que ele faz
+
+Quando alguém chama:
+
+GET /api/v1/health
+
+ele responde com:
+
+status
+
+nome do serviço
+
+timestamp
+
+Papel real no sistema
+
+Esse endpoint serve para:
+
+smoke test
+
+health check manual
+
+readiness/liveness check futuro
+
+monitoramento
+
+validação em deploy/container/orquestração
+
+Leitura sênior
+
+Health endpoint não é “só um teste”.
+Ele é parte da operabilidade do sistema.
+
+Em ambiente real ele é usado por:
+
+Docker healthcheck
+
+Kubernetes probes
+
+load balancer
+
+observabilidade
+
+pipelines de deploy
+
+Sobre o controller em si
+
+Hoje ele está correto porque:
+
+recebe HTTP
+
+não contém regra de negócio complexa
+
+devolve resposta simples
+
+não acopla domínio
+
+Esse é exatamente o papel de controller:
+
+entrada
+
+delegação
+
+saída
+
+Não decisão de negócio.

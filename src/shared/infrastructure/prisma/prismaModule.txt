@@ -1,0 +1,16 @@
+O que esse módulo faz
+@Global()
+
+Faz com que o PrismaService fique disponível globalmente no app sem precisar importar o módulo em todo lugar.
+
+Para começo de projeto, isso é aceitável e prático.
+
+Depois, se você quiser, pode deixar mais explícito.
+
+providers
+
+Registra o PrismaService.
+
+exports
+
+Permite que ele seja usado fora do módulo.

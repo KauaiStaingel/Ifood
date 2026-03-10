@@ -1,0 +1,556 @@
+Quando você cria um usuário hoje, o fluxo percorre **camadas diferentes com responsabilidades diferentes**. Esse é o caminho:
+
+# Visão macro do fluxo
+
+```text
+Cliente HTTP (Postman)
+→ Nest Router
+→ IdentityController
+→ CreateUserRequest
+→ ValidationPipe global
+→ CreateUserUseCase
+→ UserRepository (contrato)
+→ PrismaUserRepository (implementação)
+→ PrismaService
+→ Prisma Client
+→ PostgreSQL
+→ resposta volta pela mesma cadeia
+```
+
+Agora vamos quebrar isso com precisão.
+
+---
+
+# 1. A requisição sai do cliente
+
+Você envia algo assim:
+
+```http
+POST /api/v1/identity/users
+Content-Type: application/json
+```
+
+Body:
+
+```json
+{
+  "name": "Kauai",
+  "email": "kauai@example.com",
+  "password": "123456",
+  "role": "customer"
+}
+```
+
+Nesse momento, isso ainda é só uma requisição HTTP crua.
+
+---
+
+# 2. O Nest encontra a rota
+
+O Nest montou essa rota a partir de 3 partes:
+
+## Prefixo global
+
+No `main.ts`:
+
+```ts
+app.setGlobalPrefix(apiPrefix);
+```
+
+Isso cria:
+
+```text
+/api/v1
+```
+
+## Prefixo do controller
+
+No controller:
+
+```ts
+@Controller('identity')
+```
+
+Isso cria:
+
+```text
+/identity
+```
+
+## Método HTTP
+
+No método:
+
+```ts
+@Post('users')
+```
+
+Isso cria:
+
+```text
+/users
+```
+
+## Resultado final
+
+```text
+POST /api/v1/identity/users
+```
+
+Então o Nest identifica que essa requisição deve cair no método `createUser` do `IdentityController`.
+
+---
+
+# 3. O controller recebe a requisição
+
+Algo nessa linha:
+
+```ts
+@Post('users')
+async createUser(@Body() body: CreateUserRequest) {
+  return this.createUserUseCase.execute({
+    name: body.name,
+    email: body.email,
+    password: body.password,
+    role: body.role,
+  });
+}
+```
+
+## Papel do controller
+
+O controller é a **porta de entrada HTTP**.
+
+Ele não deveria:
+
+* consultar banco direto
+* decidir regra de negócio
+* hashear senha
+* montar query SQL
+
+Ele só faz:
+
+* receber request
+* delegar para a aplicação
+* devolver response
+
+---
+
+# 4. O `@Body()` passa pela validação
+
+Antes do método do controller ser executado, o Nest aplica o `ValidationPipe` global que você configurou no `main.ts`:
+
+```ts
+app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }),
+);
+```
+
+E o body é validado contra a classe `CreateUserRequest`.
+
+Exemplo:
+
+```ts
+export class CreateUserRequest {
+  @IsString()
+  @IsNotEmpty()
+  name: string;
+
+  @IsEmail()
+  email: string;
+
+  @IsString()
+  @MinLength(6)
+  password: string;
+
+  @IsString()
+  @IsNotEmpty()
+  role: string;
+}
+```
+
+## O que acontece aqui
+
+Se o payload for inválido:
+
+* o controller nem executa
+* o Nest responde erro 400
+
+Exemplos de erro:
+
+* email inválido
+* senha curta
+* campo faltando
+* campo extra, se `forbidNonWhitelisted` bloquear
+
+## Isso é regra de negócio?
+
+Não.
+Isso é **validação de contrato de entrada**.
+
+---
+
+# 5. O controller chama o caso de uso
+
+Depois da validação, o controller chama:
+
+```ts
+this.createUserUseCase.execute(...)
+```
+
+Aqui ele transforma o request HTTP em um input da aplicação.
+
+## Papel do caso de uso
+
+O caso de uso representa a **ação de negócio**:
+
+> criar um usuário
+
+Ele orquestra a regra.
+
+---
+
+# 6. O `CreateUserUseCase` executa a lógica
+
+Algo nessa linha:
+
+```ts
+async execute(input: CreateUserDto) {
+  const emailAlreadyExists = await this.userRepository.existsByEmail(input.email);
+
+  if (emailAlreadyExists) {
+    throw new ConflictException('Email already in use');
+  }
+
+  const user = await this.userRepository.create({
+    name: input.name,
+    email: input.email,
+    password: input.password,
+    role: input.role,
+  });
+
+  return user;
+}
+```
+
+## O que ele faz
+
+1. recebe os dados
+2. pergunta ao repositório se já existe usuário com esse email
+3. se existir, lança erro 409
+4. se não existir, manda criar
+5. devolve o resultado
+
+## Por que isso fica aqui?
+
+Porque essa é a **regra da aplicação**, não da infraestrutura e não do HTTP.
+
+O controller não deve saber dessa regra.
+O banco não deve decidir isso sozinho.
+
+---
+
+# 7. O caso de uso depende de uma abstração
+
+O use case não chama Prisma direto.
+
+Ele depende de um contrato:
+
+```ts
+export interface UserRepository {
+  existsByEmail(email: string): Promise<boolean>;
+  create(data: {...}): Promise<...>;
+}
+```
+
+## Por que isso importa
+
+Isso desacopla a aplicação da tecnologia de persistência.
+
+O use case sabe:
+
+* “preciso verificar email”
+* “preciso criar usuário”
+
+Mas não sabe:
+
+* se é Prisma
+* se é SQL puro
+* se é Mongo
+* se é mock em teste
+
+Essa separação é uma das bases da arquitetura limpa.
+
+---
+
+# 8. O Nest injeta a implementação concreta
+
+No `identity.module.ts`, você registrou algo assim:
+
+```ts
+providers: [
+  CreateUserUseCase,
+  PrismaUserRepository,
+  {
+    provide: 'UserRepository',
+    useExisting: PrismaUserRepository,
+  },
+]
+```
+
+E no use case:
+
+```ts
+constructor(
+  @Inject('UserRepository')
+  private readonly userRepository: UserRepository,
+) {}
+```
+
+## O que isso significa
+
+Quando o Nest cria o `CreateUserUseCase`, ele injeta a implementação concreta `PrismaUserRepository`.
+
+Então, em runtime:
+
+```text
+UserRepository → PrismaUserRepository
+```
+
+---
+
+# 9. O `PrismaUserRepository` traduz para banco
+
+Exemplo:
+
+```ts
+async existsByEmail(email: string): Promise<boolean> {
+  const user = await this.prisma.user.findUnique({
+    where: { email },
+  });
+
+  return !!user;
+}
+```
+
+E:
+
+```ts
+async create(data) {
+  return this.prisma.user.create({
+    data,
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  });
+}
+```
+
+## Papel dessa classe
+
+Ela é o **adapter de persistência**.
+
+Ela pega uma operação de domínio/aplicação e traduz para tecnologia concreta.
+
+Ou seja:
+
+* use case fala em “usuário”
+* repository Prisma fala em “query do Prisma”
+
+---
+
+# 10. O repository usa o `PrismaService`
+
+O `PrismaUserRepository` não instancia `new PrismaClient()`.
+
+Ele recebe:
+
+```ts
+constructor(private readonly prisma: PrismaService) {}
+```
+
+## O que é o `PrismaService`
+
+É um wrapper centralizado do Prisma Client registrado no container do Nest.
+
+Isso evita:
+
+* criar client em vários lugares
+* abrir conexões duplicadas
+* espalhar dependência de banco pelo sistema
+
+---
+
+# 11. O Prisma gera a query e fala com o Postgres
+
+Quando você chama:
+
+```ts
+this.prisma.user.create(...)
+```
+
+o Prisma:
+
+* traduz isso para SQL
+* envia a query para o PostgreSQL
+* recebe o resultado
+* mapeia de volta para objeto JS/TS
+
+Nesse momento, a tabela `users` é alterada no banco.
+
+---
+
+# 12. O banco persiste o registro
+
+No PostgreSQL, a linha é inserida com campos como:
+
+* `id`
+* `name`
+* `email`
+* `password`
+* `role`
+* `created_at`
+* `updated_at`
+
+Hoje o `password` está sendo salvo em texto puro, e isso é justamente o próximo ponto a corrigir com hash.
+
+---
+
+# 13. O resultado sobe de volta
+
+Depois que o banco responde:
+
+```text
+PostgreSQL
+→ Prisma
+→ PrismaUserRepository
+→ CreateUserUseCase
+→ IdentityController
+→ Nest response serializer
+→ cliente HTTP
+```
+
+O retorno final não inclui a senha porque no repository você usou `select` e escolheu explicitamente os campos retornados.
+
+Isso é importante para evitar vazamento acidental.
+
+---
+
+# 14. O caminho completo, com responsabilidades
+
+## Camada HTTP
+
+### `IdentityController`
+
+Recebe a requisição e delega.
+
+## Camada de entrada
+
+### `CreateUserRequest` + `ValidationPipe`
+
+Valida o formato do payload.
+
+## Camada de aplicação
+
+### `CreateUserUseCase`
+
+Executa a regra de criar usuário.
+
+## Camada de abstração
+
+### `UserRepository`
+
+Define o contrato de persistência.
+
+## Camada de infraestrutura
+
+### `PrismaUserRepository`
+
+Implementa a persistência com Prisma.
+
+## Infraestrutura técnica
+
+### `PrismaService`
+
+Fornece acesso centralizado ao Prisma Client.
+
+## Persistência real
+
+### PostgreSQL
+
+Armazena o usuário.
+
+---
+
+# 15. O que acontece se o email já existir
+
+Fluxo:
+
+1. request chega
+2. valida DTO
+3. controller chama use case
+4. use case chama `existsByEmail`
+5. repository consulta o banco
+6. se encontrar usuário, o use case lança:
+
+```ts
+throw new ConflictException('Email already in use');
+```
+
+7. o Nest transforma isso numa resposta HTTP 409
+
+Ou seja, a regra de unicidade lógica está no caso de uso, e o banco também reforça isso com `@unique`.
+
+Isso é bom porque você tem:
+
+* proteção de aplicação
+* proteção de persistência
+
+---
+
+# 16. Leitura sênior do fluxo
+
+O que você construiu não é só “um endpoint que cadastra usuário”.
+
+Você construiu um fluxo com:
+
+* borda HTTP desacoplada
+* validação de contrato
+* regra orquestrada em caso de uso
+* persistência abstraída por interface
+* implementação concreta separada
+* banco centralizado por service
+
+Isso é exatamente o tipo de separação que permite o sistema crescer sem virar um controller gordo.
+
+---
+
+# 17. Em uma frase
+
+Hoje, a criação de usuário funciona assim:
+
+> a requisição entra pelo controller, é validada pelo pipe global, delegada para o caso de uso, que aplica a regra de negócio e usa um repositório abstrato cuja implementação concreta com Prisma persiste os dados no PostgreSQL.
+
+---
+
+# 18. O único ponto criticamente incompleto
+
+O fluxo está correto, mas ainda falta a parte de segurança:
+
+* normalização de email
+* hash de senha
+* talvez role default controlado
+
+Então o próximo passo natural continua sendo:
+**introduzir hash de senha com argon2**, sem quebrar essa arquitetura.
+
+Se você quiser, no próximo passo eu te mostro **onde exatamente o hash deve entrar no fluxo e por que ele deve entrar ali, e não no controller nem no repository**.

@@ -1,0 +1,48 @@
+. Estrutura do módulo identity
+
+Vamos começar organizando o módulo como ele deve existir no projeto.
+
+Crie esta estrutura:
+
+src/modules/identity/
+  domain/
+    entities/
+    repositories/
+  application/
+    use-cases/
+    dto/
+  infrastructure/
+    persistence/
+      prisma/
+  interfaces/
+    http/
+      controllers/
+      requests/
+O que cada parte vai receber
+domain/entities
+
+Entidade de domínio User depois.
+
+domain/repositories
+
+Contrato do repositório de usuário.
+
+application/use-cases
+
+Caso de uso CreateUser.
+
+application/dto
+
+DTO interno da aplicação.
+
+infrastructure/persistence/prisma
+
+Implementação concreta do repositório usando Prisma.
+
+interfaces/http/controllers
+
+Controller REST.
+
+interfaces/http/requests
+
+DTOs de entrada HTTP.

@@ -1,0 +1,7 @@
+# .env
+\node_modules
+# \config
+# tsconfig.build.json
+# tsconfig.json
+# # *.txt
+# /generated/prisma

@@ -1,0 +1,35 @@
+4. O que cada parte significa
+image: postgres:16
+
+Define a imagem oficial do Postgres, versão 16.
+
+container_name: ifood-postgres
+
+Nome fixo do container local.
+
+restart: unless-stopped
+
+Se o Docker reiniciar, o banco volta automaticamente, exceto se você tiver parado ele manualmente.
+
+environment
+
+Cria o banco inicial e define credenciais:
+
+banco: ifood_db
+
+usuário: ifood_user
+
+senha: ifood_pass
+
+ports
+
+Expõe a porta do container para sua máquina:
+
+host 5432
+
+container 5432
+
+volumes
+
+Persiste os dados do banco.
+Sem isso, cada vez que o container fosse recriado você perderia tudo.

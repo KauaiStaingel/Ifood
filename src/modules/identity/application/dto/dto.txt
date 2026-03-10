@@ -1,0 +1,82 @@
+**DTO** significa **Data Transfer Object**.
+
+É um **objeto usado para transportar dados entre camadas do sistema**, sem carregar regras de negócio. Em arquiteturas como **Clean Architecture, DDD ou Hexagonal**, ele serve como um **formato de dados para comunicação**.
+
+No seu projeto, a estrutura parece algo como:
+
+```
+application
+ ├─ dto
+ ├─ use-cases
+domain
+ ├─ entities
+ ├─ repositories
+```
+
+### 📦 Função do DTO
+
+O DTO é usado para **entrada ou saída de dados** de um caso de uso.
+
+Exemplo comum:
+
+* Controller recebe dados da requisição
+* Converte para um **DTO**
+* Passa o DTO para o **use-case**
+
+### 💻 Exemplo em TypeScript
+
+#### DTO
+
+```ts
+export interface CreateUserDTO {
+  name: string
+  email: string
+  password: string
+}
+```
+
+#### Use Case
+
+```ts
+import { CreateUserDTO } from "../dto/create-user.dto"
+
+export class CreateUserUseCase {
+  execute(data: CreateUserDTO) {
+    // lógica do caso de uso
+  }
+}
+```
+
+### 🧠 Por que usar DTO?
+
+1. **Evita expor entidades do domínio**
+2. **Controla o formato dos dados**
+3. **Facilita validação**
+4. **Desacopla camadas**
+
+### 📌 Diferença comum
+
+| Tipo         | Função                                |
+| ------------ | ------------------------------------- |
+| **Entity**   | Modelo do domínio com regras          |
+| **DTO**      | Estrutura de dados para transferência |
+| **Request**  | Dados que chegam via HTTP             |
+| **Response** | Dados que saem da API                 |
+
+### 🔎 No seu projeto
+
+Provavelmente:
+
+```
+http/requests -> DTO -> use-case -> entity
+```
+
+ou
+
+```
+entity -> DTO -> http/response
+```
+
+---
+
+Se quiser, também posso te explicar **a diferença entre `DTO`, `Request`, `Entity` e `Interface Repository` dentro dessa arquitetura** (que é exatamente o que aparece na sua pasta). Isso ajuda muito a entender projetos grandes.

@@ -1,0 +1,22 @@
+13. docs/
+
+Essa pasta é para decisões de arquitetura e documentação viva do projeto.
+
+O que faz sentido ter aí
+
+arquitetura.md
+
+decisões técnicas
+
+bounded contexts
+
+fluxos de pedido
+
+estados do pedido
+
+convenções do projeto
+
+Leitura sênior
+
+Projeto bom não é só código bom.
+É código bom com decisão explicitada.

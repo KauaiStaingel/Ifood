@@ -1,0 +1,36 @@
+O que esse código faz
+extends PrismaClient
+
+Seu service passa a herdar todas as capacidades do Prisma Client.
+
+Ou seja, depois você poderá usar:
+
+this.prisma.user.findUnique(...)
+
+this.prisma.user.create(...)
+
+e assim por diante.
+
+@Injectable()
+
+Registra o service no container de DI do Nest.
+
+Isso permite injetar o Prisma em outros services depois.
+
+implements OnModuleInit
+
+Diz que esse service participa do ciclo de vida do Nest.
+
+onModuleInit
+
+Quando o módulo for inicializado, ele chama:
+
+await this.$connect();
+
+Isso abre a conexão com o banco de forma explícita.
+
+enableShutdownHooks
+
+Permite que o Nest feche a aplicação corretamente quando o processo encerrar.
+
+Isso é importante para shutdown limpo do app.

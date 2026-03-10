@@ -1,0 +1,23 @@
+15. test/
+
+Essa pasta é a reserva para testes.
+
+O que deve ir aí depois
+
+integração
+
+e2e
+
+helpers de teste
+
+setup global
+
+Leitura sênior
+
+Você provavelmente vai preferir deixar:
+
+testes de domínio próximos ao módulo
+
+e2e/integration mais globais em test/
+
+Isso é uma estratégia muito comum e saudável.

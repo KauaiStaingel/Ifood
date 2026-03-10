@@ -1,0 +1,35 @@
+11. src/modules/identity, catalog, ordering
+
+Hoje essas pastas estão vazias, mas conceitualmente são a parte mais importante do projeto.
+
+O que elas representam
+
+São seus bounded contexts iniciais.
+
+identity
+
+Autenticação, usuários, acesso.
+
+catalog
+
+Restaurantes, produtos, categorias, disponibilidade.
+
+ordering
+
+Carrinho, pedido, itens, status.
+
+Leitura sênior
+
+A existência dessas pastas desde o começo já força um pensamento correto:
+
+o sistema não é “um monte de arquivos por tecnologia”, ele é organizado por domínio.
+
+Isso é muito mais escalável do que estruturas tipo:
+
+controllers/
+
+services/
+
+repositories/
+
+globais e misturados para tudo.

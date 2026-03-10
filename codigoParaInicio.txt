@@ -1,0 +1,32 @@
+Subir Container do Projeto
+docker-compose up -d
+
+O que faz: sobe em background os serviços definidos no docker-compose.yml, normalmente banco de dados e outros serviços auxiliares.
+
+Observação: isso depende de o Docker Desktop estar aberto.
+
+6) Gerar o client do Prisma
+npx prisma generate
+
+O que faz: gera o Prisma Client com base no schema.prisma, permitindo que a aplicação acesse o banco.
+
+7) Rodar as migrations
+npx prisma migrate deploy
+
+O que faz: aplica no banco as migrations já existentes no projeto.
+
+Se for ambiente de desenvolvimento e vocês ainda estiverem criando estrutura:
+npx prisma migrate dev
+
+O que faz: além de aplicar migration, ajuda no fluxo de desenvolvimento.
+
+Regra prática:
+
+migrate deploy → usar quando as migrations já existem e só quer subir o projeto
+
+migrate dev → usar quando está desenvolvendo localmente e criando/ajustando migrations
+
+8) Rodar a aplicação em modo desenvolvimento
+npm run start:dev
+
+O que faz: inicia o NestJS com hot reload.

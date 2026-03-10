@@ -1,0 +1,56 @@
+19. Resumo direto de cada peça
+main.ts
+
+Sobe a aplicação e aplica configuração global.
+
+app.module.ts
+
+Compõe o módulo raiz e registra a topologia principal do sistema.
+
+env.ts
+
+Transforma variáveis de ambiente em configuração estruturada.
+
+health.controller.ts
+
+Expõe endpoint operacional de saúde da aplicação.
+
+.env
+
+Configuração local do ambiente.
+
+.env.example
+
+Contrato mínimo das variáveis exigidas.
+
+tsconfig.json
+
+Regras de compilação e comportamento do TypeScript.
+
+tsconfig.build.json
+
+Versão da config focada em build.
+
+package.json
+
+Manifesto operacional e de dependências do projeto.
+
+modules/
+
+Organização por domínio/bounded context.
+
+shared/
+
+Capacidades transversais compartilhadas.
+
+prisma/
+
+Persistência relacional e schema do banco.
+
+docs/
+
+Documentação arquitetural e decisões.
+
+test/
+
+Estrutura reservada para testes.

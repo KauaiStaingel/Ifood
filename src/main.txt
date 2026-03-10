@@ -1,0 +1,489 @@
+Vou **atualizar e elevar a explicação para o código atual**, incluindo a integração com **PrismaService**, mantendo a leitura **direta, arquitetural e nível sênior**.
+
+---
+
+# Visão geral
+
+```ts
+async function bootstrap()
+```
+
+Esse é o **entrypoint da aplicação**.
+
+Responsabilidade dele:
+
+1. Inicializar o framework
+2. Montar o container de dependências (IoC)
+3. Aplicar configurações globais
+4. Inicializar infraestrutura necessária
+5. Expor o servidor HTTP
+
+Ele **não contém regra de negócio**.
+
+---
+
+# Papel arquitetural
+
+Esse arquivo pertence ao **Application Bootstrap Layer**.
+
+Ele é responsável por **orquestrar a inicialização do runtime**, não por executar lógica de domínio.
+
+Em arquiteturas maduras, esse arquivo normalmente:
+
+* monta o container
+* conecta infraestrutura
+* aplica middleware/pipes
+* expõe a interface HTTP
+
+Ele é **infraestrutura de execução**, não parte do domínio.
+
+---
+
+# Explicação detalhada do código
+
+## `import 'reflect-metadata'`
+
+```ts
+import 'reflect-metadata';
+```
+
+Habilita o suporte a **metadata reflection no runtime**.
+
+Frameworks baseados em decorators, como Nest, dependem disso para ler metadados definidos em classes.
+
+Isso é usado para:
+
+* Dependency Injection
+* Decorators de controllers
+* Decorators de DTO
+* Pipes de validação
+* Swagger metadata
+
+Sem isso o Nest não consegue ler os metadados usados para montar o container.
+
+---
+
+# Inicialização da aplicação
+
+## `NestFactory.create(AppModule)`
+
+```ts
+const app = await NestFactory.create(AppModule);
+```
+
+Cria a instância da aplicação Nest.
+
+Internamente isso faz várias coisas importantes:
+
+1. Carrega o **módulo raiz**
+2. Resolve todos os **imports**
+3. Instancia todos os **providers**
+4. Monta o **grafo de dependências**
+5. Inicializa o **container IoC**
+6. Prepara o **adapter HTTP (Express por padrão)**
+
+Ou seja, nesse ponto o Nest transforma **sua estrutura declarativa de módulos em uma aplicação executável**.
+
+---
+
+# Recuperando dependências do container
+
+## `app.get(ConfigService)`
+
+```ts
+const configService = app.get(ConfigService);
+```
+
+Aqui você está pedindo ao container:
+
+> “Me entregue a instância registrada de ConfigService”.
+
+Isso é **Dependency Injection manual**.
+
+### Por que usar ConfigService?
+
+Em vez de acessar:
+
+```ts
+process.env
+```
+
+diretamente no código, você centraliza configuração em um serviço.
+
+Benefícios:
+
+* desacoplamento do ambiente
+* padronização de configuração
+* testabilidade
+* consistência
+
+Esse é o padrão usado em aplicações backend maduras.
+
+---
+
+## Recuperando o PrismaService
+
+```ts
+const prismaService = app.get(PrismaService);
+```
+
+Aqui você recupera o **serviço de acesso ao banco de dados**.
+
+Esse service encapsula:
+
+* conexão com o banco
+* client do Prisma
+* lifecycle de conexão
+
+Isso evita coisas perigosas como:
+
+```ts
+new PrismaClient() espalhado pelo código
+```
+
+Centralizar o client em um service é uma prática fundamental.
+
+---
+
+# Leitura das configurações
+
+```ts
+const apiPrefix = configService.get<string>('app.apiPrefix') || 'api/v1';
+const port = configService.get<number>('app.port') || 3000;
+const appName = configService.get<string>('app.name') || 'IFOOD';
+```
+
+Aqui você está recuperando configurações da aplicação.
+
+Essas configurações normalmente vêm de:
+
+* `.env`
+* config loader
+* variáveis de ambiente
+
+Esse padrão cria um **layer de configuração desacoplado do runtime**.
+
+Em produção isso facilita:
+
+* múltiplos ambientes
+* overrides
+* testes
+* containers
+
+---
+
+# Prefixo global de rotas
+
+```ts
+app.setGlobalPrefix(apiPrefix);
+```
+
+Define um prefixo global para todas as rotas HTTP.
+
+Exemplo:
+
+```
+/health
+```
+
+vira
+
+```
+/api/v1/health
+```
+
+### Por que isso é importante?
+
+Isso cria uma convenção para:
+
+* versionamento de API
+* organização de endpoints
+* evolução futura
+
+Por exemplo:
+
+```
+/api/v2
+```
+
+no futuro.
+
+Isso é uma prática padrão em APIs profissionais.
+
+---
+
+# Validação global de entrada
+
+```ts
+app.useGlobalPipes(
+  new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }),
+);
+```
+
+Aqui você está aplicando um **pipe global de validação de entrada HTTP**.
+
+Esse pipe usa `class-validator` e `class-transformer`.
+
+### O que cada opção faz
+
+#### whitelist
+
+Remove propriedades que **não existem no DTO**.
+
+Exemplo:
+
+Se o DTO aceita:
+
+```
+email
+password
+```
+
+e alguém envia:
+
+```
+email
+password
+admin=true
+```
+
+o campo `admin` é removido.
+
+---
+
+#### forbidNonWhitelisted
+
+Em vez de apenas remover campos extras, ele **rejeita a requisição**.
+
+Isso ajuda a evitar:
+
+* payloads maliciosos
+* inconsistência de contrato
+
+---
+
+#### transform
+
+Converte tipos automaticamente.
+
+Exemplo:
+
+```
+age: "25"
+```
+
+pode virar:
+
+```
+age: number
+```
+
+se o DTO esperar um number.
+
+---
+
+# Leitura arquitetural
+
+Esse pipe pertence à **camada de borda (interface layer)**.
+
+Ele valida **formato de entrada**, não regra de domínio.
+
+Ele protege a aplicação contra:
+
+* payload inválido
+* tipos errados
+* campos inesperados
+
+Mas **não substitui validação de negócio**.
+
+---
+
+# Configuração do Swagger
+
+```ts
+const swaggerConfig = new DocumentBuilder()
+```
+
+Aqui você está construindo a configuração da documentação da API.
+
+```ts
+.setTitle(`${appName} API`)
+.setDescription('Backend do projeto de estudo estilo iFood')
+.setVersion('1.0.0')
+.addBearerAuth()
+```
+
+### O que isso faz
+
+Define:
+
+* nome da API
+* descrição
+* versão
+* suporte a autenticação JWT
+
+---
+
+## Gerando o documento
+
+```ts
+const document = SwaggerModule.createDocument(app, swaggerConfig);
+```
+
+O Nest varre:
+
+* controllers
+* decorators
+* DTOs
+* metadata
+
+E gera automaticamente a especificação **OpenAPI**.
+
+---
+
+## Expondo a documentação
+
+```ts
+SwaggerModule.setup('docs', app, document);
+```
+
+Isso cria a rota:
+
+```
+/docs
+```
+
+onde você tem:
+
+* documentação interativa
+* teste de endpoints
+* inspeção de contratos
+
+---
+
+# Integração com o Prisma lifecycle
+
+```ts
+await prismaService.enableShutdownHooks(app);
+```
+
+Isso conecta o lifecycle do Prisma com o lifecycle do Nest.
+
+### O que resolve
+
+Quando o processo da aplicação terminar:
+
+* o Prisma fecha conexões
+* o Nest encerra corretamente
+* evita vazamento de conexão com banco
+
+Sem isso você pode ter:
+
+* conexões presas
+* processos não encerrando
+* comportamento estranho em shutdown.
+
+---
+
+# Inicialização do servidor HTTP
+
+```ts
+await app.listen(port);
+```
+
+Aqui o servidor HTTP começa a aceitar requisições.
+
+Nesse momento:
+
+* todos os módulos já foram carregados
+* todos os providers instanciados
+* infraestrutura conectada
+* rotas registradas
+
+Ou seja, a aplicação está **operacional**.
+
+---
+
+# Logs de bootstrap
+
+```ts
+console.log(`${appName} running on http://localhost:${port}/${apiPrefix}`);
+console.log(`Swagger on http://localhost:${port}/docs`);
+```
+
+Esses logs ajudam a identificar rapidamente:
+
+* porta da aplicação
+* prefixo de API
+* URL da documentação
+
+---
+
+# Leitura sênior
+
+Em sistemas maiores, `console.log` geralmente é substituído por:
+
+* logger estruturado
+* logs JSON
+* correlação por request id
+* integração com observabilidade
+
+Exemplos comuns:
+
+* Winston
+* Pino
+* OpenTelemetry
+
+Mas para bootstrap inicial, isso é totalmente aceitável.
+
+---
+
+# Resumo arquitetural do arquivo
+
+Esse arquivo é responsável por:
+
+### Inicialização
+
+* NestFactory
+* container IoC
+
+### Infraestrutura
+
+* Prisma lifecycle
+* ConfigService
+
+### Camada de borda
+
+* ValidationPipe
+* prefixo de API
+
+### Observabilidade básica
+
+* logs de bootstrap
+
+### Interface HTTP
+
+* servidor Express
+* documentação Swagger
+
+---
+
+# Em uma frase (visão de arquiteto)
+
+Esse arquivo **monta o runtime da aplicação**, conectando infraestrutura, framework e interface HTTP antes que qualquer lógica de negócio seja executada.
+
+---
+
+Se quiser, no próximo passo posso te mostrar **como um arquiteto experiente organiza esse bootstrap quando o projeto cresce**, incluindo:
+
+* logger estruturado
+* graceful shutdown
+* interceptors globais
+* exception filters
+* request id middleware
+
+Essas são coisas que **quase todo backend grande usa**.

@@ -1,0 +1,34 @@
+12. src/shared
+
+Esse é o espaço para capacidades transversais do sistema.
+
+O que deve morar aí
+
+Somente coisas realmente compartilhadas, como:
+
+config
+
+abstrações base
+
+erros comuns
+
+utilitários de infraestrutura
+
+talvez módulos compartilhados
+
+O que não deve morar aí
+
+Regras específicas de domínio.
+
+Exemplo:
+
+regra de pedido não vai no shared
+
+regra de autenticação não vai no shared
+
+regra de catálogo não vai no shared
+
+Leitura sênior
+
+shared mal usado vira depósito de código sem dono.
+shared bem usado vira o kernel técnico da aplicação.

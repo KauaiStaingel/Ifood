@@ -1,0 +1,66 @@
+3. src/app.module.ts
+
+Esse é o módulo raiz da aplicação.
+
+Responsabilidade
+
+Ele é o ponto de composição principal do backend.
+
+É onde você:
+
+importa módulos
+
+registra controllers globais
+
+registra providers globais
+
+define a topologia principal da aplicação
+
+Papel arquitetural
+
+Ele funciona como a raiz de composição do sistema.
+
+Isso é importante:
+AppModule não é lugar para regra de negócio.
+É lugar de orquestração estrutural.
+
+O que cada parte faz
+@Module({...})
+
+Decorator que define um módulo do Nest.
+
+Um módulo no Nest é uma unidade organizacional que agrupa:
+
+controllers
+
+providers
+
+imports
+
+exports
+
+Isso é parte do sistema de DI do framework.
+
+ConfigModule.forRoot(...)
+
+Carrega e registra a configuração da aplicação.
+
+isGlobal: true
+
+Faz com que o módulo de config fique disponível em qualquer parte do sistema sem precisar importar repetidamente.
+
+Isso reduz boilerplate.
+
+load: [env]
+
+Diz ao Nest para usar sua fábrica de configuração customizada (env.ts).
+
+Com isso, você deixa de depender diretamente de process.env em todo lugar e passa a ter uma configuração estruturada.
+
+controllers: [HealthController]
+
+Registra o controller HTTP de health no módulo raiz.
+
+Hoje faz sentido porque ele é um endpoint transversal e ainda não existe módulo compartilhado formalizado para isso.
+
+No futuro, isso pode evoluir para um SharedModule ou HealthModule.
