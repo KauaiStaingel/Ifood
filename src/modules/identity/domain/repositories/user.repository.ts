@@ -1,5 +1,6 @@
 export interface UserRepository {
   existsByEmail(email: string): Promise<boolean>;
+
   create(data: {
     name: string;
     email: string;
@@ -13,6 +14,16 @@ export interface UserRepository {
     createdAt: Date;
     updatedAt: Date;
   }>;
+
+  findByEmail(email: string): Promise<{
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null>;
 }
 
 

@@ -39,18 +39,27 @@ export class PrismaUserRepository implements UserRepository {
       },
     });
   }
+
+  async findByEmail(email: string): Promise<{
+    id: string;
+    name: string;
+    email: string;
+    password: string;
+    role: string;
+    createdAt: Date;
+    updatedAt: Date;
+  } | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        password: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
 }
-
-
-
-// O que essa classe faz
-
-// Ela é o adapter de infraestrutura.
-
-// Ela traduz o contrato abstrato UserRepository para uma implementação concreta usando Prisma.
-
-// Esse é o ponto de contato entre:
-
-// domínio/aplicação
-
-// tecnologia de banco
