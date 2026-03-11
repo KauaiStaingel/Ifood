@@ -1,0 +1,87 @@
+Escopo da primeira fase do Catalog
+
+Eu recomendo começar só com Restaurant e fechar esse ciclo primeiro.
+
+Primeira entrega do Catalog
+
+modelagem Prisma de Restaurant
+
+migration
+
+entidade de domínio Restaurant
+
+repositório
+
+caso de uso CreateRestaurantUseCase
+
+controller
+
+endpoint protegido para criar restaurante
+
+endpoint para listar restaurantes
+
+Estrutura sugerida
+
+Seguindo o mesmo padrão do seu identity:
+
+src/modules/catalog
+├── application
+│   ├── dto
+│   └── use-cases
+├── domain
+│   ├── entities
+│   └── repositories
+├── http
+│   ├── controllers
+│   └── requests
+├── infrastructure
+│   ├── persistence
+│   │   └── prisma
+│   └── interfaces
+└── catalog.module.ts
+Primeiro modelo: Restaurant
+Campos iniciais recomendados
+
+Para a primeira versão:
+
+id
+
+name
+
+slug
+
+description
+
+isActive
+
+ownerId
+
+createdAt
+
+updatedAt
+
+ownerId vai ligar o restaurante ao usuário autenticado.
+
+Prisma
+
+No seu schema.prisma, eu começaria assim:
+
+model Restaurant {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+Se você já quiser preparar relacionamento com User, aí depende de como seu model de usuário está no Prisma.
+Para começar rápido, pode deixar só ownerId: String.
+
+Migration
+
+Depois disso:
+
+npx prisma migrate dev --name create_restaurant

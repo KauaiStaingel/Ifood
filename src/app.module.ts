@@ -4,6 +4,7 @@ import env from './shared/config/env';
 import { PrismaModule } from './shared/infrastructure/prisma/prisma.module';
 import { HealthController } from './shared/interfaces/http/health.controller';
 import { IdentityModule } from './modules/identity/identity.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { IdentityModule } from './modules/identity/identity.module';
     }),
     PrismaModule,
     IdentityModule,
+    CatalogModule,
   ],
   controllers: [HealthController],
 })
