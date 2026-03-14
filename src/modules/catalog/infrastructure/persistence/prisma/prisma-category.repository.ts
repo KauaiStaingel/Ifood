@@ -47,4 +47,21 @@ export class PrismaCategoryRepository implements CategoryRepository {
         ),
     );
   }
+
+  async findById(id: string): Promise<Category | null> {
+  const category = await this.prisma.category.findUnique({
+    where: { id },
+  });
+
+  if (!category) return null;
+
+  return new Category(
+    category.id,
+    category.restaurantId,
+    category.name,
+    category.displayOrder,
+    category.createdAt,
+    category.updatedAt,
+  );
+}
 }
