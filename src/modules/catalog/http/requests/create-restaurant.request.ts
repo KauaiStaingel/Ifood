@@ -1,4 +1,4 @@
-import { IsOptional, IsString, MinLength } from 'class-validator';
+import { IsString, MinLength, IsOptional } from 'class-validator';
 
 export class CreateRestaurantRequest {
   @IsString()
@@ -8,4 +8,7 @@ export class CreateRestaurantRequest {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsString()
+  restaurantCategoryId!: string;
 }

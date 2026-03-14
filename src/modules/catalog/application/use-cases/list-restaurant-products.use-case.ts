@@ -1,24 +1,24 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { CategoryRepository } from '../../domain/repositories/category.repository';
 import { ProductRepository } from '../../domain/repositories/product.repository';
+import { RestaurantRepository } from '../../domain/repositories/restaurant.repository';
 
 @Injectable()
-export class ListCategoryProductsUseCase {
+export class ListRestaurantProductsUseCase {
   constructor(
     @Inject('ProductRepository')
     private readonly productRepository: ProductRepository,
 
-    @Inject('CategoryRepository')
-    private readonly categoryRepository: CategoryRepository,
+    @Inject('RestaurantRepository')
+    private readonly restaurantRepository: RestaurantRepository,
   ) {}
 
-  async execute(categoryId: string) {
-    const category = await this.categoryRepository.findById(categoryId);
+  async execute(restaurantId: string) {
+    const restaurant = await this.restaurantRepository.findById(restaurantId);
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    if (!restaurant) {
+      throw new NotFoundException('Restaurant not found');
     }
 
-    return this.productRepository.findManyByCategoryId(categoryId);
+    return this.productRepository.findManyByRestaurantId(restaurantId);
   }
 }

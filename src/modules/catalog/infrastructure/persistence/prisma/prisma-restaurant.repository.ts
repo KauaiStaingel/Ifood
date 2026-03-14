@@ -16,6 +16,7 @@ export class PrismaRestaurantRepository implements RestaurantRepository {
         description: restaurant.description,
         isActive: restaurant.isActive,
         ownerId: restaurant.ownerId,
+        restaurantCategoryId: restaurant.restaurantCategoryId,
         createdAt: restaurant.createdAt,
         updatedAt: restaurant.updatedAt,
       },
@@ -28,8 +29,29 @@ export class PrismaRestaurantRepository implements RestaurantRepository {
       created.description,
       created.isActive,
       created.ownerId,
+      created.restaurantCategoryId,
       created.createdAt,
       created.updatedAt,
+    );
+  }
+
+  async findById(id: string): Promise<Restaurant | null> {
+    const restaurant = await this.prisma.restaurant.findUnique({
+      where: { id },
+    });
+
+    if (!restaurant) return null;
+
+    return new Restaurant(
+      restaurant.id,
+      restaurant.name,
+      restaurant.slug,
+      restaurant.description,
+      restaurant.isActive,
+      restaurant.ownerId,
+      restaurant.restaurantCategoryId,
+      restaurant.createdAt,
+      restaurant.updatedAt,
     );
   }
 
@@ -47,6 +69,7 @@ export class PrismaRestaurantRepository implements RestaurantRepository {
       restaurant.description,
       restaurant.isActive,
       restaurant.ownerId,
+      restaurant.restaurantCategoryId,
       restaurant.createdAt,
       restaurant.updatedAt,
     );
@@ -66,28 +89,10 @@ export class PrismaRestaurantRepository implements RestaurantRepository {
           restaurant.description,
           restaurant.isActive,
           restaurant.ownerId,
+          restaurant.restaurantCategoryId,
           restaurant.createdAt,
           restaurant.updatedAt,
         ),
     );
   }
-
-  async findById(id: string): Promise<Restaurant | null> {
-  const restaurant = await this.prisma.restaurant.findUnique({
-    where: { id },
-  });
-
-  if (!restaurant) return null;
-
-  return new Restaurant(
-    restaurant.id,
-    restaurant.name,
-    restaurant.slug,
-    restaurant.description,
-    restaurant.isActive,
-    restaurant.ownerId,
-    restaurant.createdAt,
-    restaurant.updatedAt,
-  );
-}
 }

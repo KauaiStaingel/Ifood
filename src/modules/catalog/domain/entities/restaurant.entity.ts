@@ -6,6 +6,7 @@ export class Restaurant {
     public readonly description: string | null,
     public readonly isActive: boolean,
     public readonly ownerId: string,
+    public readonly restaurantCategoryId: string,
     public readonly createdAt: Date,
     public readonly updatedAt: Date,
   ) {}

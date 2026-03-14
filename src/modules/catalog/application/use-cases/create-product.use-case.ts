@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { Product } from '../../domain/entities/product.entity';
-import { CategoryRepository } from '../../domain/repositories/category.repository';
+import { MenuCategoryRepository } from '../../domain/repositories/menu-category.repository';
 import { ProductRepository } from '../../domain/repositories/product.repository';
 import { RestaurantRepository } from '../../domain/repositories/restaurant.repository';
 import { CreateProductDto } from '../dto/create-product.dto';
@@ -20,11 +20,15 @@ export class CreateProductUseCase {
     @Inject('RestaurantRepository')
     private readonly restaurantRepository: RestaurantRepository,
 
-    @Inject('CategoryRepository')
-    private readonly categoryRepository: CategoryRepository,
+    @Inject('MenuCategoryRepository')
+    private readonly menuCategoryRepository: MenuCategoryRepository,
   ) {}
 
   async execute(input: CreateProductDto) {
+    if (input.requesterRole !== 'owner') {
+      throw new ForbiddenException('Only owners can create products');
+    }
+
     const restaurant = await this.restaurantRepository.findById(input.restaurantId);
 
     if (!restaurant) {
@@ -35,14 +39,18 @@ export class CreateProductUseCase {
       throw new ForbiddenException('You cannot manage this restaurant');
     }
 
-    const category = await this.categoryRepository.findById(input.categoryId);
+    const menuCategory = await this.menuCategoryRepository.findById(
+      input.menuCategoryId,
+    );
 
-    if (!category) {
-      throw new NotFoundException('Category not found');
+    if (!menuCategory) {
+      throw new NotFoundException('Menu category not found');
     }
 
-    if (category.restaurantId !== input.restaurantId) {
-      throw new ForbiddenException('Category does not belong to this restaurant');
+    if (menuCategory.restaurantId !== input.restaurantId) {
+      throw new ForbiddenException(
+        'Menu category does not belong to this restaurant',
+      );
     }
 
     const now = new Date();
@@ -50,7 +58,7 @@ export class CreateProductUseCase {
     const product = new Product(
       randomUUID(),
       input.restaurantId,
-      input.categoryId,
+      input.menuCategoryId,
       input.name.trim(),
       input.description?.trim() || null,
       input.price,

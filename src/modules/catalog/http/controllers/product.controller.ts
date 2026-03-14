@@ -1,36 +1,37 @@
 import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { CreateProductUseCase } from '../../application/use-cases/create-product.use-case';
-import { ListCategoryProductsUseCase } from '../../application/use-cases/list-restaurant-products.use-case';
-import { ListRestaurantProductsUseCase } from '../../application/use-cases/list-category-products.use-case';
+import { ListRestaurantProductsUseCase } from '../../application/use-cases/list-restaurant-products.use-case';
+import { ListMenuCategoryProductsUseCase } from '../../application/use-cases/list-menu-category-products.use-case';
 import { CreateProductRequest } from '../requests/create-product.request';
 import { JwtAuthGuard } from '../../../identity/infrastructure/security/jwt-auth.guard';
 import { CurrentUser } from '../../../identity/infrastructure/security/current-user.decorator';
 import { AuthenticatedUser } from '../../../identity/infrastructure/security/authenticated-user';
 
-@Controller('api/v1/catalog')
+@Controller('/catalog')
 export class ProductController {
   constructor(
     private readonly createProductUseCase: CreateProductUseCase,
     private readonly listRestaurantProductsUseCase: ListRestaurantProductsUseCase,
-    private readonly listCategoryProductsUseCase: ListCategoryProductsUseCase,
+    private readonly listMenuCategoryProductsUseCase: ListMenuCategoryProductsUseCase,
   ) {}
 
-  @Post('restaurants/:restaurantId/categories/:categoryId/products')
+  @Post('restaurants/:restaurantId/menu-categories/:menuCategoryId/products')
   @UseGuards(JwtAuthGuard)
   async create(
     @Param('restaurantId') restaurantId: string,
-    @Param('categoryId') categoryId: string,
+    @Param('menuCategoryId') menuCategoryId: string,
     @Body() body: CreateProductRequest,
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.createProductUseCase.execute({
       restaurantId,
-      categoryId,
+      menuCategoryId,
       name: body.name,
       description: body.description,
       price: body.price,
       imageUrl: body.imageUrl,
       requesterId: user.sub,
+      requesterRole: user.role,
     });
   }
 
@@ -39,8 +40,8 @@ export class ProductController {
     return this.listRestaurantProductsUseCase.execute(restaurantId);
   }
 
-  @Get('categories/:categoryId/products')
-  async listByCategory(@Param('categoryId') categoryId: string) {
-    return this.listCategoryProductsUseCase.execute(categoryId);
+  @Get('menu-categories/:menuCategoryId/products')
+  async listByMenuCategory(@Param('menuCategoryId') menuCategoryId: string) {
+    return this.listMenuCategoryProductsUseCase.execute(menuCategoryId);
   }
 }

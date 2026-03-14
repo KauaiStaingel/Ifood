@@ -22,7 +22,9 @@ export class CatalogController {
     return this.createRestaurantUseCase.execute({
       name: body.name,
       description: body.description,
+      restaurantCategoryId: body.restaurantCategoryId,
       ownerId: user.sub,
+      requesterRole: user.role,
     });
   }
 

@@ -2,7 +2,7 @@ export class Product {
   constructor(
     public readonly id: string,
     public readonly restaurantId: string,
-    public readonly categoryId: string,
+    public readonly menuCategoryId: string,
     public readonly name: string,
     public readonly description: string | null,
     public readonly price: number,

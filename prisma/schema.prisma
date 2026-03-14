@@ -20,20 +20,36 @@ model User {
 }
 
 
-model Restaurant {
-  id          String     @id @default(uuid())
-  name        String
-  slug        String     @unique
-  description String?
-  isActive    Boolean    @default(true)
-  ownerId     String
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  categories  Category[]
-  products    Product[]
+model RestaurantCategory {
+  id         String       @id @default(uuid())
+  name       String       @unique
+  slug       String       @unique
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  restaurants Restaurant[]
 }
 
-model Category {
+model Restaurant {
+  id                   String             @id @default(uuid())
+  name                 String
+  slug                 String             @unique
+  description          String?
+  isActive             Boolean            @default(true)
+  ownerId              String
+  restaurantCategoryId String
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  restaurantCategory   RestaurantCategory @relation(fields: [restaurantCategoryId], references: [id], onDelete: Restrict)
+  menuCategories       MenuCategory[]
+  products             Product[]
+
+  @@index([ownerId])
+  @@index([restaurantCategoryId])
+}
+
+model MenuCategory {
   id           String     @id @default(uuid())
   restaurantId String
   name         String
@@ -45,23 +61,25 @@ model Category {
   products     Product[]
 
   @@index([restaurantId])
+  @@unique([restaurantId, name])
 }
 
 model Product {
-  id           String     @id @default(uuid())
-  restaurantId String
-  categoryId   String
-  name         String
-  description  String?
-  price        Decimal    @db.Decimal(10, 2)
-  isAvailable  Boolean    @default(true)
-  imageUrl     String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  id             String       @id @default(uuid())
+  restaurantId   String
+  menuCategoryId String
+  name           String
+  description    String?
+  price          Decimal      @db.Decimal(10, 2)
+  isAvailable    Boolean      @default(true)
+  imageUrl       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
-  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
-  category     Category   @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  restaurant     Restaurant   @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuCategory   MenuCategory @relation(fields: [menuCategoryId], references: [id], onDelete: Restrict)
 
   @@index([restaurantId])
-  @@index([categoryId])
+  @@index([menuCategoryId])
+  @@unique([restaurantId, menuCategoryId, name])
 }

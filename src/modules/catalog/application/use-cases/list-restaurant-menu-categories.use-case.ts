@@ -1,12 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { ProductRepository } from '../../domain/repositories/product.repository';
+import { MenuCategoryRepository } from '../../domain/repositories/menu-category.repository';
 import { RestaurantRepository } from '../../domain/repositories/restaurant.repository';
 
 @Injectable()
-export class ListRestaurantProductsUseCase {
+export class ListRestaurantMenuCategoriesUseCase {
   constructor(
-    @Inject('ProductRepository')
-    private readonly productRepository: ProductRepository,
+    @Inject('MenuCategoryRepository')
+    private readonly menuCategoryRepository: MenuCategoryRepository,
 
     @Inject('RestaurantRepository')
     private readonly restaurantRepository: RestaurantRepository,
@@ -19,6 +19,6 @@ export class ListRestaurantProductsUseCase {
       throw new NotFoundException('Restaurant not found');
     }
 
-    return this.productRepository.findManyByRestaurantId(restaurantId);
+    return this.menuCategoryRepository.findManyByRestaurantId(restaurantId);
   }
 }

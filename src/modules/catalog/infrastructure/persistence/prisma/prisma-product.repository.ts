@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../../shared/infrastructure/database/prisma/prisma.service';
+import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
 import { Product } from '../../../domain/entities/product.entity';
 import { ProductRepository } from '../../../domain/repositories/product.repository';
 
@@ -12,7 +12,7 @@ export class PrismaProductRepository implements ProductRepository {
       data: {
         id: product.id,
         restaurantId: product.restaurantId,
-        categoryId: product.categoryId,
+        menuCategoryId: product.menuCategoryId,
         name: product.name,
         description: product.description,
         price: product.price,
@@ -26,7 +26,7 @@ export class PrismaProductRepository implements ProductRepository {
     return new Product(
       created.id,
       created.restaurantId,
-      created.categoryId,
+      created.menuCategoryId,
       created.name,
       created.description,
       Number(created.price),
@@ -48,7 +48,7 @@ export class PrismaProductRepository implements ProductRepository {
         new Product(
           product.id,
           product.restaurantId,
-          product.categoryId,
+          product.menuCategoryId,
           product.name,
           product.description,
           Number(product.price),
@@ -60,9 +60,9 @@ export class PrismaProductRepository implements ProductRepository {
     );
   }
 
-  async findManyByCategoryId(categoryId: string): Promise<Product[]> {
+  async findManyByMenuCategoryId(menuCategoryId: string): Promise<Product[]> {
     const products = await this.prisma.product.findMany({
-      where: { categoryId },
+      where: { menuCategoryId },
       orderBy: { createdAt: 'asc' },
     });
 
@@ -71,7 +71,7 @@ export class PrismaProductRepository implements ProductRepository {
         new Product(
           product.id,
           product.restaurantId,
-          product.categoryId,
+          product.menuCategoryId,
           product.name,
           product.description,
           Number(product.price),

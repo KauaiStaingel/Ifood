@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../shared/infrastructure/prisma/prisma.service';
-import { Category } from '../../../domain/entities/category.entity';
-import { CategoryRepository } from '../../../domain/repositories/category.repository';
+import { MenuCategory } from '../../../domain/entities/menu-category.entity';
+import { MenuCategoryRepository } from '../../../domain/repositories/menu-category.repository';
 
 @Injectable()
-export class PrismaCategoryRepository implements CategoryRepository {
+export class PrismaMenuCategoryRepository implements MenuCategoryRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(category: Category): Promise<Category> {
-    const created = await this.prisma.category.create({
+  async create(category: MenuCategory): Promise<MenuCategory> {
+    const created = await this.prisma.menuCategory.create({
       data: {
         id: category.id,
         restaurantId: category.restaurantId,
@@ -19,7 +19,7 @@ export class PrismaCategoryRepository implements CategoryRepository {
       },
     });
 
-    return new Category(
+    return new MenuCategory(
       created.id,
       created.restaurantId,
       created.name,
@@ -29,15 +29,15 @@ export class PrismaCategoryRepository implements CategoryRepository {
     );
   }
 
-  async findManyByRestaurantId(restaurantId: string): Promise<Category[]> {
-    const categories = await this.prisma.category.findMany({
+  async findManyByRestaurantId(restaurantId: string): Promise<MenuCategory[]> {
+    const categories = await this.prisma.menuCategory.findMany({
       where: { restaurantId },
       orderBy: [{ displayOrder: 'asc' }, { createdAt: 'asc' }],
     });
 
     return categories.map(
       (category) =>
-        new Category(
+        new MenuCategory(
           category.id,
           category.restaurantId,
           category.name,
@@ -48,20 +48,20 @@ export class PrismaCategoryRepository implements CategoryRepository {
     );
   }
 
-  async findById(id: string): Promise<Category | null> {
-  const category = await this.prisma.category.findUnique({
-    where: { id },
-  });
+  async findById(id: string): Promise<MenuCategory | null> {
+    const category = await this.prisma.menuCategory.findUnique({
+      where: { id },
+    });
 
-  if (!category) return null;
+    if (!category) return null;
 
-  return new Category(
-    category.id,
-    category.restaurantId,
-    category.name,
-    category.displayOrder,
-    category.createdAt,
-    category.updatedAt,
-  );
-}
+    return new MenuCategory(
+      category.id,
+      category.restaurantId,
+      category.name,
+      category.displayOrder,
+      category.createdAt,
+      category.updatedAt,
+    );
+  }
 }
