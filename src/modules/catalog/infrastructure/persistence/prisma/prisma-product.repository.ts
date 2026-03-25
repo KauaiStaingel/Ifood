@@ -82,4 +82,13 @@ export class PrismaProductRepository implements ProductRepository {
         ),
     );
   }
+
+  async findAvailableByRestaurantId(restaurantId: string) {
+  return this.prisma.product.findMany({
+    where: {
+      restaurantId,
+      isAvailable: true,
+    },
+  });
+}
 }

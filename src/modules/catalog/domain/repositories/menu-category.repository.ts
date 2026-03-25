@@ -4,4 +4,5 @@ export abstract class MenuCategoryRepository {
   abstract create(category: MenuCategory): Promise<MenuCategory>;
   abstract findById(id: string): Promise<MenuCategory | null>;
   abstract findManyByRestaurantId(restaurantId: string): Promise<MenuCategory[]>;
+  abstract findByRestaurantId(restaurantId: string): Promise<any[]>;
 }

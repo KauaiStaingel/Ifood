@@ -12,6 +12,7 @@ import { CreateProductUseCase } from './application/use-cases/create-product.use
 import { ListRestaurantProductsUseCase } from './application/use-cases/list-restaurant-products.use-case';
 import { ListMenuCategoryProductsUseCase } from './application/use-cases/list-menu-category-products.use-case';
 import { ListRestaurantCategoriesUseCase } from './application/use-cases/list-restaurant-categories.use-case';
+import { GetRestaurantMenuUseCase } from './application/use-cases/get-restaurant-menu.use-case';
 
 import { PrismaRestaurantRepository } from './infrastructure/persistence/prisma/prisma-restaurant.repository';
 import { PrismaMenuCategoryRepository } from './infrastructure/persistence/prisma/prisma-menu-category.repository';
@@ -38,6 +39,7 @@ import { PrismaService } from '../../shared/infrastructure/prisma/prisma.service
     ListRestaurantProductsUseCase,
     ListMenuCategoryProductsUseCase,
     ListRestaurantCategoriesUseCase,
+    GetRestaurantMenuUseCase,
 
     PrismaRestaurantRepository,
     PrismaMenuCategoryRepository,

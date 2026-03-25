@@ -64,4 +64,17 @@ export class PrismaMenuCategoryRepository implements MenuCategoryRepository {
       category.updatedAt,
     );
   }
+
+  async findByRestaurantId(restaurantId: string) {
+  return this.prisma.menuCategory.findMany({
+    where: {
+      restaurantId,
+    },
+    orderBy: {
+      displayOrder: 'asc',
+    },
+  });
+}
+
+  
 }
